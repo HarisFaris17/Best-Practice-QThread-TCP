@@ -9,6 +9,7 @@
 #include <QString>
 #include <QApplication>
 #include <QThread>
+#include <QEvent>
 
 
 class TCPServer : public QTcpServer
@@ -19,6 +20,8 @@ public Q_SLOTS:
     void onReadyRead();
     void config(const QString &ipAddress,const QString &port);
     void unlisten();
+    // here handle the event of thread changed. remember that event is not signal, therefore we should handle it
+    bool event(QEvent *e) override;
 
 Q_SIGNALS:
     void unlistened();

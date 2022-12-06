@@ -11,6 +11,7 @@ void TCPServer::run(){
         listen(QHostAddress(ipAddress),port);
         if(isListening()){
             qDebug()<<tr("Listening on : %1:%2").arg(ipAddress).arg(port);
+            qDebug()<<"listening thread this : "<<this->thread();
             qDebug()<<"listening thread tcpserver : "<<QThread::currentThread();
             connect(this,&QTcpServer::newConnection,this,&TCPServer::onNewConnection);
         }else{
@@ -32,6 +33,7 @@ void TCPServer::onNewConnection(){
 }
 
 void TCPServer::onReadyRead(){
+    qDebug()<<"on ready read thread this : "<<this->thread();
     qDebug()<<"on ready read thread tcpserver : "<<QThread::currentThread();
     QTcpSocket *client = qobject_cast<QTcpSocket *>(sender());
     QString message = client->readAll();
@@ -48,7 +50,18 @@ void TCPServer::config(const QString &ipAddress, const QString &port){
 
 void TCPServer::unlisten(){
     close();
+    qDebug()<<"unlisten called";
     // this will move the thread to main thread
     this->moveToThread(QApplication::instance()->thread());
-    Q_EMIT unlistened();
+    qDebug()<<"current tcpserver thread : "<<QThread::currentThread();
+//    Q_EMIT unlistened();
+}
+
+bool TCPServer::event(QEvent *e){
+//    qDebug()<<*e->;
+    // this is not useful since the ThreadChanged will be passed to this object just before the thread of this object changed, therefore the currentThread will return the same thread as the main thread
+    if(e->type()==QEvent::ThreadChange){
+        qDebug()<<"just before TCPSERVER thread CHANGED : "<<QThread::currentThread();
+    }
+
 }

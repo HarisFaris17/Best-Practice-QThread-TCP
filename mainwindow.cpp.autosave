@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::connectDisconnectTCP(){
-    // it is important to notice when the object was moved to another thread. if there is connection between the object and a calling (signalling) object and the object moved before any Q_EMIT from the calling object , then the slot of the moved object will not be triggered (my theory is that the pointer of the object is not pointing to the moved object in memory
+    // it is important to notice when the object was moved to another thread. if there is connection between the object and a calling (signalling) object and the object moved before any Q_EMIT from the calling object , then the slot of the moved object will not be triggered unless the another thread has started
     thread1 = new QThread;
     TCPServer *tcpServer =  new TCPServer();
     connect(this,&MainWindow::config,tcpServer,&TCPServer::config);
@@ -34,7 +34,10 @@ void MainWindow::connectDisconnectTCP(){
     connect(tcpServer,&TCPServer::unlistened,thread1,&QThread::quit);
     connect(this,&MainWindow::unlistenTCP,tcpServer,&TCPServer::unlisten);
     connect(thread1,&QThread::finished,thread1,&QThread::deleteLater);
+    
+    //from now on we can't use the method of tcpServer directly from this object, since the tcpServer is in another thread (thread1).
     tcpServer->moveToThread(thread1);
+    
     thread1->start();
 
 
